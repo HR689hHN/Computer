@@ -1,0 +1,765 @@
+\chapter{文献对比}
+\section{iTAM: Bilateral Privacy-Preserving Task  Assignment for Mobile Crowdsensing}
+
+在本文中，我们采用Paillier密码系统来保护TR和TP两者的隐私。Paillier同态密码系统的步骤和同态性质列举如下。
+
+
+\subsection{密钥生成}
+设$p$和$q$为两个大素数，其二进制长度均为给定的安全参数$\zeta$。计算$N = pq$和$\lambda = \text{lcm}(p-1, q-1)$。选取随机整数$g \in \mathbb{Z}_{N^2}^*$，然后计算$\mu = \left(L(g^\lambda \mod N^2)\right)^{-1} \mod N$，其中$L$定义为$L(x) = \frac{x-1}{N}$。输出公钥$pk = (g, N)$和私钥$sk = (\lambda, \mu)$。
+
+
+\subsection{加密}
+给定待加密的消息$m \in \mathbb{Z}_N$，使用公钥$pk$将其加密为密文：
+$$C = [m]_{pk} = g^m \cdot r^N \mod N^2$$
+其中$r$是选取的随机整数，满足$r \in \mathbb{Z}_N^*$。
+
+
+\subsection{解密}
+给定待解密的密文$C$，使用私钥$sk$将其解密为原始消息：
+$$m = D_{sk}(C) = L(C^\lambda \mod N^2) \cdot \mu \mod N$$
+
+
+假设两个密文$[x] = g^x \cdot r_x^N \mod N^2$和$[y] = g^y \cdot r_y^N \mod N^2$（其中$r_x, r_y \in \mathbb{Z}_N^*$）是用同一公钥$pk$加密的。Paillier加密的加法同态和标量乘法同态性质列举如下：
+
+\begin{enumerate}[leftmargin=*, nosep]
+\item \textbf{加法同态}：对于两个密文$[x]$和$[y]$，有
+$$D_{sk}([x] \cdot [y]) = D_{sk}([x + y])$$
+\item \textbf{标量乘法同态}：对于常数$a \in \mathbb{Z}_N$和密文$[x]$，有
+$$D_{sk}([x]^a) = D_{sk}([a \cdot x])$$
+\end{enumerate}
+
+
+\subsection{任务发布}
+
+为了防止SP和未满足任务分配约束的未选中TP获取\( R_{T} \)的内容，TR逐项加密\( R_{T} \)的内容。
+
+具体来说，对于\( R_{T_j} = < \{at_{T_j}, lnq_{T_j}, t_b^{(T_j)}, t_e^{(T_j)}, S_{T_j}, b_j > \}\)，TR使用公钥\( pk_{T_j} \)将\( R_{T_j} \)加密为\([R_{T_j}]_{pk_{T_j}}\)，如下所示。
+
+\[
+\begin{cases}
+[[lat_{T_j}^2]], [2 \cdot lat_{T_j}], [[lnq_{T_j}^2]], [2 \cdot lnq_{T_j}], \\
+[t_b^{(T_j)} \cdot t_b^{(T_j)}], [2 \cdot t_b^{(T_j)}], [t_e^{(T_j)}], \\
+[s_{j,\theta}]_, \quad \forall s_{j,\theta} \in S_{T_j}, \\
+[b_j].
+\end{cases}
+\]
+
+\subsection{参与者匹配} 
+在此阶段，感知平台（SP）根据每个感知任务的加密任务需求和接收到的加密配置文件，在任务请求者（TR）的帮助下，找出最接近感知任务物理位置的一个TP或\(K\)个TP。
+
+具体来说，SP首先计算：
+
+\[
+\llbracket d^{2}(l_{P_{i}},\,l_{T_{j}})\rrbracket\,:=\,\llbracket lat_{T_{j}}^{2}\rrbracket\cdot\llbracket 2\cdot lat_{T_{j}}\rrbracket^{-lat_{P_{i}}}\,\cdot\,\llbracket lat_{P_{i}}^{2}\rrbracket\cdot\llbracket lng_{T_{j}}^{2}\rrbracket\cdot \llbracket 2\cdot lng_{T_{j}}\rrbracket^{-lng_{P_{i}}}\,\cdot\,\llbracket lng_{P_{i}}^{2}\rrbracket.
+\]
+
+接下来，SP通过提出的PCP验证以下等式是否成立：
+
+\[
+\left\{\begin{array}{l}
+\text{PCP}(\llbracket 2\cdot t_{b}^{(T_{j})}\rrbracket,\,\llbracket 2\cdot t_{b}^{(P_{i})}\rrbracket)\stackrel{{?}}{{=}}0\text{ \&\& PCP}(\llbracket t_{e}^{(P_{i})}\rrbracket,\,\llbracket t_{e}^{(T_{j})}\rrbracket)\stackrel{{?}}{{=}}0,\\
+\text{PCP}(\llbracket(t_{b}^{(T_{j})}-t_{b}^{(P_{i})})^{2}\cdot v_{P_{i}}^{2}\rrbracket,\,\llbracket d^{2}(l_{P_{i}},l_{T_{j}})\rrbracket)\stackrel{{?}}{{=}}0,\\
+\text{PCP}(\llbracket s_{j,\vartheta}\rrbracket,\,\llbracket s_{i,\nu}\rrbracket)\stackrel{{?}}{{=}}2,\quad\forall~{}s_{j,\vartheta}\in\mathbb{S}_{T_{j}},\;\exists s_{i,\nu}\in\mathbb{S}_{P_{i}}\\
+\text{PCP}(\llbracket W_{T_{j}}^{(P_{i})}\rrbracket,\,\llbracket b_{j}\rrbracket)\stackrel{{?}}{{=}}1.
+\end{array}\right.
+\]
+
+公式(12)中所有等式和不等式均成立意味着\(P_{i}\)满足\(T_{j}\)的任务需求。此后，SP从满足任务需求的那些TP中找出前\(K_{j}\)（\(K_{j}\geq 1\)）个最小的\(d^{2}(l_{P_{i}},l_{T_{j}})\)。
+
+
+\subsection{隐私保护比较协议（PCP）与最小值协议（PMIN）设计}
+\textbf{一句话总结：}  
+隐私保护比较协议（PCP），并基于PCP进一步构建隐私保护最小值协议（PMIN），实现在加密状态下比较数据大小并找出最小值。
+
+\subsection{PCP协议设计}
+假设TR公钥\(N\)的二进制长度为\(\mathcal{L}\)（\(\mathcal{L}>2\)），且\(\llbracket x\rrbracket_{pk_{T}}\)和\(\llbracket y\rrbracket_{pk_{T}}\)为两个加密元组（其中\(pk_{T}=(g,N)\)）。令\(\eta=\mathcal{L}-2\)，\(\chi=\lfloor\mathcal{L}/2\rfloor-1\)，PCP协议步骤如下：
+
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{步骤1（@SP）}：\\
+    SP随机选择\(\gamma\in\mathbb{Z}^{*}_{2\times}\)和\(r_{1}\in\mathbb{Z}^{*}_{N}\)，并抛随机硬币\(\pi\in\{0,1\}\)：
+    \begin{itemize}
+        \item 若\(\pi=1\)，计算：
+        \[
+        \mathcal{C}_{S}:=\llbracket x\rrbracket_{pk_{T}}^{\gamma}\cdot\llbracket y\rrbracket_{pk_{T}}^{-\gamma}\cdot g^{2\eta}\cdot r_{1}^{N}\bmod N^{2}=\llbracket \gamma\cdot(x-y)+2^{\eta}\rrbracket_{pk_{T}}
+        \]
+        \item 若\(\pi=0\)，计算：
+        \[
+        \mathcal{C}_{S}:=\llbracket y\rrbracket_{pk_{T}}^{\gamma}\cdot\llbracket x\rrbracket_{pk_{T}}^{-\gamma}\cdot g^{2\eta}\cdot r_{1}^{N}\bmod N^{2}=\llbracket \gamma\cdot(y-x)+2^{\eta}\rrbracket_{pk_{T}}
+        \]
+    \end{itemize}
+    随后SP将\(\mathcal{C}_{S}\)、\(2^{\eta}\)和\(pk_{S}=(g_{s},N_{s})\)发送给TR。
+
+    \item \textbf{步骤2（@TR）}：\\
+    TR收到\(\mathcal{C}_{S}\)、\(2^{\eta}\)和\(pk_{S}\)后，用私钥\(sk_{T}=(\lambda,\mu)\)解密\(\mathcal{C}_{S}\)得到\(M:=D_{sk_{T}}(\mathcal{C}_{S})\)。随后选择随机值\(r_{2}\in\mathbb{Z}_{N}^{*}\)并比较\(M\)与\(2^{\eta}\)：
+    \begin{itemize}
+        \item 若\(M<2^{\eta}\)，计算：\(\mathcal{C}_{T}:=[1]_{pk_{S}}=g_{s}^{1}\cdot r_{2}^{N_{s}}\bmod N_{s}^{2}\)
+        \item 若\(M>2^{\eta}\)，计算：\(\mathcal{C}_{T}:=[0]_{pk_{S}}=g_{s}^{0}\cdot r_{2}^{N_{s}}\bmod N_{s}^{2}\)
+        \item 若\(M=2^{\eta}\)，计算：\(\mathcal{C}_{T}:=[2]_{pk_{S}}=g_{s}^{2}\cdot r_{2}^{N_{s}}\bmod N_{s}^{2}\)
+    \end{itemize}
+    最后将\(\mathcal{C}_{T}\)返回给SP。
+
+    \item \textbf{步骤3（@SP）}：\\
+    SP收到\(\mathcal{C}_{T}\)后，用私钥\(sk_{S}\)解密得到\(M_{T}:=D_{sk_{S}}(\mathcal{C}_{T})\)，结合随机硬币\(\pi\)解析大小关系：
+    \[
+    \begin{cases}
+    x<y, & \pi=1 \land M_{T}=1\\
+    x>y, & \pi=1 \land M_{T}=0\\
+    x=y, & (\pi=0 \lor \pi=1) \land M_{T}=2\\
+    x>y, & \pi=0 \land M_{T}=1\\
+    x<y, & \pi=0 \land M_{T}=0
+    \end{cases}
+    \]
+\end{enumerate}
+
+\subsection{PCP正确性证明}
+当\(\pi=1\)时，有：
+\[
+\mathcal{M}:=D_{sk_{T}}(\mathcal{C}_{S})=L(\mathcal{C}_{S}^{\lambda}\bmod N^{2})\cdot\mu\bmod N=\gamma\cdot(x-y)+2^{\eta}
+\]
+\begin{itemize}
+    \item 若\(\mathcal{M}_{T}=1\)，则\(\mathcal{M}<2^{\eta}\)，故\(x<y\)
+    \item 若\(\mathcal{M}_{T}=0\)，则\(\mathcal{M}>2^{\eta}\)，故\(x>y\)
+    \item 若\(\mathcal{M}_{T}=2\)，则\(\mathcal{M}=2^{\eta}\)，故\(x=y\)
+\end{itemize}
+\(\pi=0\)时同理可证。本设计通过引入SP的密钥对\((pk_{S},sk_{S})\)降低了计算开销。
+
+\subsection{PMIN协议实现}
+在单任务单TP场景中，SP需从满足条件的\(n\)个TP中找出旅行距离最短者（即最小\(d^2(l_{P_i}, l_T)\)）。令\(C_i:=[d^2(l_{P_i}, l_T)]_{pk_T}\)，PMIN算法如下：
+
+\begin{verbatim}
+算法1：从n个加密元组中找最小值
+输入：加密元组C_1,...,C_n，PCP_min函数
+输出：最小值C_min
+初始化：C_min := C_1
+for j=2 to n do
+    C_min := PCP_min(C_min, C_j)
+return C_min
+\end{verbatim}
+
+该方案通过PCP和PMIN实现了隐私保护下的最优任务分配。
+
+\clearpage
+
+\section{RATE: Privacy-Preserving Task Assignment with  Bi-objective Optimization for Mobile Crowdsensing}
+
+\subsection{阈值Paillier密码系统}
+
+在本工作中，我们采用\((2,2)\)-阈值Paillier密码系统[41]来保护任务参与者（TPs）和任务请求者（TR）的隐私。\((2,2)\)-阈值Paillier密码系统包含以下算法：
+
+\textbf{密钥生成}（KeyGen）：输入\(\zeta\)，KeyGen首先生成两个\(\zeta\)位（例如\(\zeta = 512\)）的大素数\(p\)和\(q\)，满足\(p = 2p' + 1\)且\(q = 2q' + 1\)，其中\(p', q'\)也是两个大素数。KeyGen输出公钥\(pk = (g, N)\)和私钥\(sk = (\lambda, u)\)，其中\(N = p \cdot q\)，\(g = N + 1\)，\(\lambda = \text{lcm}(p - 1, q - 1)\)，且\(u = \lambda^{-1} \mod N\)。特别地，私钥\(sk\)被分成两个部分私钥\(sk_1\)和\(sk_2\)，满足\(sk_1 + sk_2 = 0 \mod \lambda\)，且\(sk_1 + sk_2 = 1 \mod N\)。由于\(u = \lambda^{-1} \mod N\)，有\(\lambda u = 0 \mod \lambda\)且\(\lambda u = 1 \mod N\)。令\(sk_1\)为区间\((0, \lambda u)\)内的随机整数，且\(sk_2 = \lambda u - sk_1\)。
+
+\textbf{加密}（Enc）：输入消息\(m \in \mathbb{Z}_N\)和\(pk\)，Enc输出\(m\)的密文为\(\|m\| \leftarrow \text{Enc}(pk, m) = (1 + mN) \cdot r^N \mod N^2\)，其中\(r\)是\(\mathbb{Z}_N^{*}\)中的随机数。
+
+\textbf{解密}（Dec）：输入密文\(\|m\|\)和\(sk\)，Dec输出明文\(m\)为\(m \leftarrow \text{Dec}(sk, \|m\|) = L(\|m\|^\lambda \mod N^2) \cdot \mu \mod N\)，其中\(L(x) = \frac{x-1}{N}\)。
+
+\textbf{部分解密}（PDec）：输入密文\(\|m\|\)和部分私钥\(sk_i\)（\(i \in \{1, 2\}\)），PDec输出\(\|m\|\)的部分解密密文为\(\|m\|_i \leftarrow \text{PDec}(sk_i, \|m\|) = \|m\|^{sk_i} \mod N^2\)。
+
+
+\textbf{阈值解密}（TDec）：输入两个部分解密密文\([m]_1\)和\([m]_2\)，TDec输出  
+\[m \leftarrow \text{TDec}([m]_1, [m]_2) = L([m]_1 \cdot [m]_2 \mod N^2)。\]  
+\((2,2)\)-阈值Paillier密码系统支持加法同态和标量乘法同态，如下所示：  
+
+- 加法同态：  
+  \[  \text{Dec}(sk, \lceil m_1 + m_2 \mod N \rceil) = \text{Dec}(sk, \lceil m_1 \rceil \cdot \lceil m_2 \rceil)) \text{ 成立。}\]  
+- 标量乘法同态：  
+  \[  \text{Dec}(sk, \lceil c \cdot m \mod N \rceil) = \text{Dec}(sk, \lceil m \rceil^c) \text{ 对 } c \in \mathbb{Z}_N \text{ 成立。}\]  
+
+为使\((2,2)\)-阈值Paillier密码系统能够加密浮点数，位置信息的浮点表示被转换为整数表示。具体而言，给定位置信息的浮点表示\(\langle lat, lng\rangle\)，任务参与者（TPs）或任务请求者（TR）将其编码为\(\langle lat \cdot 10^t, lng \cdot 10^t \rangle\)。
+
+\subsection{安全绝对值协议（SABS）的设计}
+
+RATE需要在加密数据上执行绝对值和除法运算。为此，我们分别开发了安全绝对值协议（SABS）和安全除法协议（SDIV）。请注意，在以下协议中，我们假设所有明文都在区间\((-2^{\ell},2^{\ell})\)内，其中\(\ell\)为常数（例如\(\ell=32\)）。
+
+现有解决方案[26], [53], [54]已构建了安全比较协议，但通过安全比较协议获得的绝对值可能会泄露任务与任务参与者位置之间的相对关系。为克服现有解决方案[26], [53], [54]的缺点，我们提出了安全绝对值协议（SABS）。具体而言，如算法2所示，SABS以两个密文\(\llbracket x\rrbracket\)和\(\llbracket y\rrbracket\)作为输入，并输出\(\llbracket\|x-y\|\rrbracket\)。请注意，SABS是由SP和CSP执行的双方计算协议。下面对SABS进行简要描述。
+
+1. (1) SP随机选择\(\pi\in\{0,1\}\)并计算
+   \[
+   D\leftarrow\begin{cases}
+   \left(\llbracket x\rrbracket\cdot\llbracket y\rrbracket^{N-1}\right)^{r_{1}}\cdot\llbracket r_{1}+r_{2}\rrbracket, & \text{若 }\pi=0 \\
+   \left(\llbracket x\rrbracket\cdot\llbracket y\rrbracket^{N-1}\right)^{r_{1}}\cdot\llbracket r_{2}\rrbracket, & \text{若 }\pi=1
+   \end{cases}
+   \]
+   (14)
+   其中随机数\(r_{1}\leftarrow\{0,1\}^{\sigma}/\{0\}\)和\(r_{2}\)满足\(r_{2}\leq\frac{N}{2}\)且\(r_{1}+r_{2}>\frac{N}{2}\)。\(\sigma\)为安全参数，例如\(\sigma=128\)。接着，SP调用PDec对\(D\)进行部分解密得到\(D_{1}\)，并计算\(\llbracket y-x\rrbracket=\llbracket y\rrbracket\cdot\llbracket x\rrbracket^{N-1}\)。最后，SP将\(\langle D,D_{1},\llbracket y-x\rrbracket\rangle\)发送给CSP。
+
+2. (2) CSP调用PDec对\(D\)进行部分解密得到\(D_{2}\)，然后通过调用TDec与\(D_{1}\)和\(D_{2}\)得到\(d\)。若\(\pi=0\)，则\(d=r_{1}\cdot(x-y+1)+r_{2}\)；否则\(d=r_{1}\cdot(y-x)+r_{2}\)。接着，若\(d>\frac{N}{2}\)，CSP设\(u_{0}=0\)，否则设\(u_{0}=1\)。之后，CSP计算
+   \[
+   \llbracket\Delta\rrbracket=(\llbracket y-x\rrbracket)^{(1-2u_{0})}.
+   \]
+   (15)
+   最后，CSP将\(\llbracket\Delta\rrbracket\)返回给SP。
+
+3. (3) SP计算
+
+\subsection{算法2：安全绝对值协议（SABS）}
+\textbf{算法2}: \(\text{SABS}(\|x\|,\|y\|)\to\|\lfloor x-y\rfloor\|\)
+
+\textbf{输入:} SP持有\(\|x\|\), \(\|y\|\)，其中\(x,y\in(-2^{\ell},2^{\ell})\)。
+
+\textbf{输出:} SP获得\(\|\lfloor x-y\rfloor\|\)。
+
+步骤1. SP计算：
+
+\begin{itemize}[leftmargin=*, nosep]
+  \item \(\|y-x\|=\|y|\cdot\|x\|^{N-1}\);
+  \item 当\(\pi=0\)时，\(\|r_{1}+r_{2}\|\leftarrow\text{Enc}(pk,r_{1}+r_{2})\)且\(D\leftarrow(\|y-x\|)^{r_{1}}\cdot\|r_{1}+r_{2}\|\)；当\(\pi=1\)时，\(\|r_{2}\|\leftarrow\text{Enc}(pk,r_{2})\)且\(D\leftarrow(\|y-x\|)^{r_{1}}\cdot\|r_{2}\|\);
+  \item \(D_{1}\leftarrow\text{PDec}(sk_{1},D)\);
+  \item 并将\(\langle D,D_{1},\|y-x\|\rangle\)发送给CSP。
+\end{itemize}
+
+步骤2. CSP计算：
+
+\begin{itemize}[leftmargin=*, nosep]
+  \item \(D_{2}\leftarrow\text{PDec}(sk_{2},D)\)且\(d\leftarrow\text{TDec}(D_{1},D_{2})\);
+  \item 当\(d>\frac{N}{2}\)时\(u_{0}\gets 0\)，否则（当\(d\leq\frac{N}{2}\)时）\(u_{0}\gets 1\);
+  \item \(\|\Delta\|=(\|y-x\|)^{(1-2u_{0})}\);
+  \item 并将\(\langle\|\Delta\|\rangle\)发送给SP。
+\end{itemize}
+
+步骤3. SP计算：
+
+\begin{itemize}[leftmargin=*, nosep]
+  \item \(\|\lfloor x-y\rfloor\|=\|\Delta\|^{1-2\pi}\)。
+\end{itemize}
+
+
+\subsection{安全除法协议（SDIV）的设计}
+
+除了计算任务与任务参与者（TPs）之间的距离外，RATE还需要计算任务参与者的服务价值。现有的安全除法解决方案[44], [26]存在精度损失和计算成本高的问题，这影响了任务分配。为此，我们设计了一种新的安全除法协议（SDIV）。如算法3所示，SDIV以\(\llbracket x\rrbracket\), \(\llbracket y\rrbracket\)作为输入，并输出\(\llbracket x/y\rrbracket\)。下面对SDIV进行简要描述。
+
+1. (1) SP选择一个\(\sigma\)位的随机数\(r\)，然后计算
+   \[
+   C\leftarrow\llbracket x\rrbracket\cdot\llbracket y\rrbracket^{r}.
+   \]
+   (16)
+   SP调用PDec对\(C\)进行部分解密得到\(C_{1}\)，并将\(\langle C,C_{1}\rangle\)发送给CSP。
+
+2. (2) CSP使用部分私钥\(sk_{2}\)调用PDec对\(C\)进行部分解密得到\(C_{2}\)。然后，CSP调用TDec得到\(\nabla\)并将其发送给TP。
+
+3. (3) TP计算\(o=\nabla/y\)，然后使用公钥\(pk\)调用Enc加密\(o\)。接着，TP将\(\llbracket o\rrbracket\)返回给SP。
+
+4. (4) SP计算\(\llbracket x/y\rrbracket=\llbracket o\rrbracket\cdot\llbracket r\rrbracket^{N-1}\)，其中\(r\)是步骤(1)中选择的随机数。
+
+\subsection{算法3：安全除法协议（SDIV）}
+\textbf{算法3:} SDIV([\(x\)], [\(y\)]) \(\rightarrow\) [\(x/y\)]
+
+\textbf{输入:} SP持有[\(x\)]和[\(y\)]，其中\(x\in[0,2^{\ell})\)且\(y\in(0,2^{\ell})\)，且TP持有\(y\)。
+
+\textbf{输出:} SP获得[\(x/y\)]。
+
+\begin{itemize}[leftmargin=*, nosep]
+  \item \textbf{步骤1.} SP计算：
+    \begin{itemize}[leftmargin=*, nosep]
+      \item \(C \leftarrow [x] \cdot [y]^{r}\)，其中\(r\)是一个\(\sigma\)位的随机数；
+      \item \(C_{1} \leftarrow \texttt{PDec}(sk_{1}, C)\)；  
+      \item 并将\(\langle C, C_{1}\rangle\)发送给CSP。
+    \end{itemize}
+  
+  \item \textbf{步骤2.} CSP计算：
+    \begin{itemize}[leftmargin=*, nosep]
+      \item \(C_{2} \leftarrow \texttt{PDec}(sk_{2}, C)\)；  
+      \item \(\nabla \leftarrow \texttt{TDec}(C_{1}, C_{2})\)；  
+      \item 并将\(\nabla\)发送给TP。
+    \end{itemize}
+  
+  \item \textbf{步骤3.} TP计算：
+    \begin{itemize}[leftmargin=*, nosep]
+      \item \(o \leftarrow \nabla / y\)；  
+      \item [\(o\)] \(\leftarrow \texttt{Enc}(pk, o)\)；  
+      \item 并将[\(o\)]返回给SP。
+    \end{itemize}
+  
+  \item \textbf{步骤4.} SP计算：
+    \begin{itemize}[leftmargin=*, nosep]
+      \item [\(x/y\)] \(\leftarrow\) [\(o\)] \(\cdot\) [\(r\)]\({}^{N-1}\)。
+    \end{itemize}
+\end{itemize}
+
+\clearpage
+
+
+\section{PRIMPSO: A Privacy-Preserving Multiagent  Particle Swarm Optimization Algorithm}
+\subsection{Paillier密码系统}
+PRIMPSO采用Paillier密码系统[17]对每个粒子的私有数据进行加密，并构建隐私保护协议及算法。给定两个密文\([x] = \text{Enc}_{pk}(x)\)和\([y] = \text{Enc}_{pk}(y)\)（其中\(\text{Enc}_{pk}(y) = g^y \cdot r_y^N \mod N^2\)且\(r_y \in \mathbb{Z}_N^*\)），它们均使用相同的公钥\(pk = (g, N)\)进行加密。其中\(N = pq\)（\(p, q\)为两个大素数），\(g\)是\(\mathbb{Z}_N^*\)中的随机整数（详见文献[32]）。Paillier密码系统支持加法同态性和标量乘同态性。
+
+\subsection{加法同态性}
+给定任意两个密文\([x]\)和\([y]\)，满足\(\text{Dec}_{sk}([x] \cdot [y]) = \text{Dec}_{sk}([x + y])\)，其中\(\text{Dec}_{sk}\)和\(sk\)分别表示Paillier密码系统的解密操作和私钥。
+
+\subsection{标量乘同态性}
+给定任意常数\(a \in \mathbb{Z}_N\)和任意密文\([x]\)，满足\(\operatorname{Dec}_{sk}([x]^a) = \operatorname{Dec}_{sk}([a \cdot x])\)。  
+特别地，给定任意\(x \in \mathbb{Z}_N^*\)和任意\(r \in \mathbb{Z}_N^*\)，有\([x]^{N-1} = [-x]\)和\([x]^{N-r} = [-r \cdot x]\)成立。
+
+\subsection{隐私保护的两方比较协议}
+输入：聚合器拥有 \([x]\) 和 \([y]\) （其中 \(x, y \in [-10^\ell, 10^\ell]\)），且云服务器拥有私钥 \(sk\)。
+
+输出：聚合器获得 \([u]\)，其中若 \(x \geq y\) 则 \(u = 0\)，否则 \(u = 1\)。
+
+过程：
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{步骤1.} 聚合器计算：
+    - 当 \(\pi = 0\) 时，计算 \([\gamma_1 + \gamma_2] \leftarrow \text{Enc}_{pk}(\gamma_1 + \gamma_2)\) 和 \(D \leftarrow ([x] \cdot [y]^{N-1})^{\gamma_1} \cdot [\gamma_1 + \gamma_2]\)；或者当 \(\pi = 1\) 时，计算 \([\gamma_2] \leftarrow \text{Enc}_{pk}(\gamma_2)\) 和 \(D \leftarrow ([y] \cdot [x]^{N-1})^{\gamma_1} \cdot [\gamma_2]\)，其中 \(\gamma_1 \in (0, 2^\sigma)\)，\(\gamma_2 \in (\frac{N}{2} - \gamma_1, \frac{N}{2})\)，\(\pi \in \{0, 1\}\)（例如，聚合器抛随机硬币生成 \(\pi\)），且 \(\sigma\) 是一个统计安全参数，例如 \(\sigma = 128\)，以及 \(10^\ell \ll 2^\sigma \ll \frac{N}{2}\)；
+    - 并将 \(D\) 发送给云服务器。
+    
+    \item \textbf{步骤2.} 云服务器计算：
+    - \(\Delta \leftarrow \text{Dec}_{sk}(D)\)，如果 \(\Delta > \frac{N}{2}\) 则 \([u'] \leftarrow \text{Enc}_{pk}(0)\)，否则 \([u'] \leftarrow \text{Enc}_{pk}(1)\)；
+    - 并将 \([u']\) 发送给聚合器。
+    
+    \item \textbf{步骤3.} 聚合器计算：
+    - 当 \(\pi = 1\) 时，计算 \([u] \leftarrow [1] \cdot ([u'])^{N-1}\)；否则 \([u] \leftarrow [u']\)。
+\end{enumerate}
+
+图4. 隐私保护的两方比较协议 \(\Phi\).
+
+
+
+\section{PEGA: A Privacy-Preserving Genetic Algorithm  for Combinatorial Optimization}
+
+\subsection{密钥生成 (KeyGen)}  
+令 \( p = 2p' + 1 \) 和 \( q = 2q' + 1 \) 为两个大素数（位数为 \( \kappa \)，例如 \( \kappa = 512 \)），其中 \( p', q' \) 也是素数。公钥记为 \( pk = (g, N) \)，其中 \( N = pq \) 且 \( g = N + 1 \)。私钥记为 \( sk = (\lambda, \mu) \)，其中 \( \lambda = \text{lcm}(p - 1, q - 1) \) 且 \( \mu = \lambda^{-1} \mod N \)。特别地，私钥被拆分为两个部分私钥 \( \lambda_1 \) 和 \( \lambda_2 \)，满足 \( \lambda_1 + \lambda_2 = 0 \mod \lambda \) 且 \( \lambda_1 + \lambda_2 = 1 \mod N \)。由于 \( \mu = \lambda^{-1} \mod N \)，有 \( \lambda \mu = 0 \mod \lambda \) 且 \( \lambda \mu = 1 \mod N \)。设 \( \lambda_1 \) 为区间 \( (0, \lambda N) \) 内的随机整数，且 \( \lambda_2 = \lambda \mu - \lambda_1 \mod \lambda N \)。
+
+\subsection{加密 (Enc)}  
+输入消息 \( m \in \mathbb{Z}_N \) 和 \( pk \)，输出 \( [m] \leftarrow \text{Enc}(pk, m) = (1 + mN) \cdot r^N \mod N^2 \)，其中 \( [m] = [m \mod N] \) 且 \( r \) 为 \( \mathbb{Z}_N^* \) 中的随机数。
+
+\subsection{解密 (Dec)}  
+输入密文 \( [m] \) 和 \( sk \)，输出 \( m \leftarrow \text{Dec}(sk, [m]) = L([m]^{\lambda} \mod N^2) \cdot \mu \mod N \)，其中 \( L(x) = ([x - 1]/N) \)。
+
+\subsection{部分解密 (PDec)}  
+输入密文 \( [m] \) 和部分私钥 \( \lambda_i \)（\( i = 1 \) 或 2），输出 \( M_i \leftarrow \text{PDec}(\lambda_i, [m]) = [m]^{\lambda_i} \mod N^2 \)。
+
+\subsection{阈值解密 (TDec)}  
+输入部分解密后的密文 \( M_1 \) 和 \( M_2 \)，输出 \( m \leftarrow \text{TDec}(M_1, M_2) = L(M_1 \cdot M_2 \mod N^2) \)。
+
+THPC 支持的密文同态运算如下：
+
+1) \textbf{加法同态性}：\(\text{Dec}(sk, [m_1 + m_2 \mod N]) = \text{Dec}(sk, [m_1] \cdot [m_2])\)；
+
+2) \textbf{标量乘法同态性}：\(\text{Dec}(sk, [c \cdot m \mod N]) = \text{Dec}(sk, [m]^c) \)（其中 \( c \in \mathbb{Z}_N \)）。
+
+基于加法同态性和标量乘法同态性，THPC 支持加密数据的减法运算。具体而言：\(\text{Dec}(sk, [m_1 - m_2]) = \text{Dec}(sk, [m_1] \cdot [m_2]^{-1}) \)。
+
+\subsection{安全除法协议 (Secure Division Protocol)}  
+给定 \([x]\) 和 \([y]\)（其中 \(y \neq 0\)），SecDiv 输出 \(\|(x/y)\|\)。SecDiv 的核心思想是将除法转换为标量乘法。具体而言，对于任意整数 \(x, y\)，有 \((x/y) = (x \cdot y)/2^\ell\)，其中 \(y = (1/y) \cdot 2^\ell\) 且 \(y\) 为整数。形式化表示为：  
+\[
+\text{SecDiv}([x], [y]) \rightarrow \|(x/y) \cdot 2^\ell\|
+\]  
+SecDiv 包含以下三个步骤：
+
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{步骤 1}：  
+    \(S_1\) 调用 PDec 对 \([y]\) 进行部分解密，得到 \([y]_1\)。随后将 \(\langle [y], [y]_1 \rangle\) 发送给 \(S_2\)。
+
+    \item \textbf{步骤 2}：  
+    \(S_2\) 调用 PDec 对 \([y]\) 进行部分解密，得到 \([y]_2\)。随后调用 TDec 结合 \([y]_1\) 和 \([y]_2\) 得到 \(y\)。接着计算 \(den = (1/y)\)，并将 \(den\) 编码为 \(y = (den^\dagger / den^\downarrow) \cdot 2^\ell\)。最后将 \(y\) 返回给 \(S_1\)。显然，\(y\) 是一个整数。
+
+    \item \textbf{步骤 3}：  
+    \(S_1\) 计算 \(\|(x/y)\| \leftarrow \|x\|^y\)。
+\end{enumerate}
+
+\subsection{安全比较协议 (Secure Comparison Protocol)}  
+给定 \([x]\) 和 \([y]\)，SecCmp 在 \(x \geq y\) 时输出 0，否则（即 \(x < y\)）输出 1。形式化表示为：  
+\[
+\text{SecCmp}([x], [y]) \rightarrow \{0, 1\}
+\]  
+SecCmp 包含以下三个步骤：
+
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{步骤 1}：  
+    \(S_1\) 通过抛硬币生成随机数 \(\pi \in \{0, 1\}\)，并计算：
+    \[
+    [\Delta] = 
+    \begin{cases} 
+    (|x| \cdot |y|^{-1})^{r_1} \cdot [r_1 + r_2], & \text{若 } \pi = 0 \\ 
+    (|y| \cdot |x|^{-1}) \cdot [r_2], & \text{若 } \pi = 1 
+    \end{cases}
+    \]
+    其中 \(r_1, r_2\) 为两个随机整数，满足 \(r_1 \leftarrow \{0, 1\}^\sigma \setminus \{0\}\)，\(r_1 + r_2 > (N/2)\)，且 \(r_2 \leq (N/2)\)。\(\sigma\) 为安全参数（例如 \(\sigma = 128\)）。  
+    接着，\(S_1\) 调用 PDec 得到 \([\Delta]_1\)，并将 \((|\Delta|, [\Delta]_1)\) 发送给 \(S_2\)。
+
+    \item \textbf{步骤 2}：  
+    \(S_2\) 调用 PDec 得到 \([\Delta]_2\)，随后调用 TDec 结合 \([\Delta]_1\) 和 \([\Delta]_2\) 得到 \(\Delta\)。若 \(\Delta > (N/2)\)，则设 \(u = 0\)；否则设 \(u = 1\)。最后将 \(u\) 发送给 \(S_1\)。
+
+    \item \textbf{步骤 3}：  
+    \(S_1\) 通过计算 \(\pi \oplus u\) 得到比较结果：  
+    - 当 \(\pi = 0\) 时：若 \(u = 0\) 则 \(\pi \oplus u = 0\)，否则为 1；  
+    - 当 \(\pi = 1\) 时：若 \(u = 0\) 则 \(\pi \oplus u = 1\)，否则为 0。
+\end{enumerate}
+
+\section{SOCI: A Toolkit for Secure Outsourced  Computation on Integers}
+\textbf{一句话总结：}  
+本文基于文献[17]的工作，将Paillier密码系统的私钥拆分为两个部分私钥，任何一个部分私钥都无法有效解密Paillier加密的密文。PaillierTD包含以下算法，并具有加法同态性和标量乘法同态性，同时支持安全乘法（SMUL）、安全比较（SCMP）、安全符号位获取（SSBA）和安全除法（SDIV）等协议。
+
+\subsection{加密方案}
+\subsubsection{密钥生成（KeyGen）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{参数设置}  \\
+    设\( p, q \)为两个强素数（即\( p = 2p' + 1 \)，\( q = 2q' + 1 \)，其中\( p' \)和\( q' \)为素数），位数为\( \kappa \)（例如\( \kappa = 512 \)）。计算\( N = p \cdot q \)，\( \lambda = \text{lcm}(p - 1, q - 1) \)，以及\( \mu = \lambda^{-1} \mod N \)。令生成元\( g = N + 1 \)，公钥\( pk = (g, N) \)，私钥\( sk = \lambda \)。
+    \item \textbf{私钥分割}  \\
+    私钥\( \lambda \)被分割为两部分，记为\( sk_1 = \lambda_1 \)和\( sk_2 = \lambda_2 \)，满足\( \lambda_1 + \lambda_2 = 0 \mod \lambda \)且\( \lambda_1 + \lambda_2 = 1 \mod N \)。根据中国剩余定理[28]，可以计算\( \delta = \lambda_1 + \lambda_2 = \lambda \cdot \mu \mod (\lambda \cdot N) \)，使得\( \delta = 0 \mod \lambda \)和\( \delta = 1 \mod N \)同时成立。其中\( \lambda_1 \)可以是一个\(\sigma\)位的随机数，而\( \lambda_2 = \lambda \cdot \mu + \eta \cdot \lambda N - \lambda_1 \)（\(\eta\)是一个非负整数）。
+\end{enumerate}
+
+\subsubsection{加密（Enc）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{加密过程}  \\
+    输入消息\( m \in \mathbb{Z}_N \)，输出\([m] \leftarrow \text{Enc}(pk, m) = g^{m} \cdot r^N \mod N^2\)，其中\( r \)是\( \mathbb{Z}_N^* \)中的随机数（即\( r \overset{\$}{\leftarrow} \mathbb{Z}_N^* \)，其中\( \overset{\$}{\leftarrow} \)表示随机选择），且\([m] = [m \mod N]\)。注意，本文中“\(\leftarrow\)”和“\(\rightarrow\)”表示输出。
+\end{enumerate}
+
+\subsubsection{解密（Dec）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{解密过程}  \\
+    输入密文\([m]\)和\(sk\)，输出\( m \leftarrow \text{Dec}(sk, [m]) = L([m]^\lambda \mod N^2) \cdot \mu \mod N \)，其中\( L(x) = \frac{x-1}{N} \)。
+\end{enumerate}
+
+\subsubsection{部分解密（PDec）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{部分解密过程}  \\
+    输入密文\([m]\)和部分私钥\( sk_i \)（\( i \in \{1, 2\} \)），输出\( M_i \leftarrow \text{PDec}(sk_i, [m]) = [m]^{\lambda_i} \mod N^2 \)。
+\end{enumerate}
+
+\subsubsection{阈值解密（TDec）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{阈值解密过程}  \\
+    输入部分解密后的密文\( (M_1, M_2) \)，输出\( m \leftarrow \text{TDec}(M_1, M_2) = L(M_1 \cdot M_2 \mod N^2) \)。
+\end{enumerate}
+
+注意，由于通过Enc加密的密文上的操作需要执行\( \mod N^2 \)运算，为简洁起见，本文其余部分将省略\( \mod N^2 \)。
+
+PaillierTD具有以下加法同态性和标量乘法同态性：
+- 加法同态性：\(\text{Dec}(sk, [m_1 + m_2 \mod N]) = \text{Dec}(sk, [m_1] \cdot [m_2])\)；
+- 标量乘法同态性：\(\text{Dec}(sk, [c \cdot m \mod N]) = \text{Dec}(sk, [m]^c)\)，其中\( c \in \mathbb{Z}_N \)。特别地，当\( c = N - 1 \)时，\(\text{Dec}(sk, [m]^c) = -m\)成立。
+
+\subsection{数据加密}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{明文范围}  \\
+    本文假设所有明文都在区间\([-2^{\ell}, 2^{\ell}]\)中，其中\(\ell\)是一个常数（例如\(\ell = 32\)），用于控制明文的域大小。实践中，可以调整\(\ell\)以支持更大的整数。通常，\(\ell\)远小于\(|N|\)，因此\(m \ll N\)（本文使用\(|x|\)表示\(x\)的比特长度）。如图2所示，尽管Paillier明文是“正数”[9]，但由于空间的循环性，负数在明文空间中简单地变为大数。具体来说，给定明文\( m \in [-2^{\ell}, 2^{\ell}] \)，如果\( m < 0 \)，则由于\( m \mod N = N - m^{*} \)（\( m^{*} \)是\( m \)的幅度），它被加密为\(\left\|N - m^{*}\right\|\)，然后\(\left\|N - m^{*}\right\|\)被解密为\( N - m^{*} \)。当\( N - m^{*} = m^{*} \)时，有\( m^{*} = \frac{N}{2} \)。因此，我们观察到，如果\( -2^{\ell} \leq m < 0 \)，则\( N - m^{*} > \frac{N}{2} \)；否则（\( 0 \leq m \leq 2^{\ell} \)），有\( m \leq \frac{N}{2} \)。
+\end{enumerate}
+
+\subsection{安全乘法协议（SMUL）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{协议目标}  \\
+    给定两个密文\([x]\)和\([y]\)，其中\( x, y \in [-2^{\ell}, 2^{\ell}] \)，SMUL(\([x]\), \([y]\))输出\([x \cdot y]\)，即SMUL(\([x]\), \([y]\)) \(\rightarrow\) \([x \cdot y]\)。如算法1所示，SMUL包含三个步骤。
+    \item \textbf{步骤1}  \\
+    CP选择两个随机数\( r_1, r_2 \)，位数为\(\sigma\)，其中\( 2^{\sigma} \gg 2^{\ell} \)（例如\(\sigma - \ell = 80\)），并通过加法同态性盲化\( x \)和\( y \)：\( X \leftarrow [x] \cdot [r_1] \)和\( Y \leftarrow [y] \cdot [r_2] \)。然后CP调用PDec部分解密\( X \)和\( Y \)得到\( X_1, Y_1 \)，并将\(\langle(X, X_1), (Y, Y_1)\rangle\)发送给CSP。
+    \item \textbf{步骤2}  \\
+    CSP调用PDec部分解密\( X \)得到\( X_2 \)，然后调用TDec与\( X_1 \)和\( X_2 \)一起得到\( x + r_1 \)。类似地，CSP通过调用PDec和TDec得到\( y + r_2 \)。然后，CSP使用从DO发送的公钥\( pk \)加密\( (x + r_1) \cdot (y + r_2) \)，并将密文\([(x + r_1) \cdot (y + r_2)]\)返回给CP。
+    \item \textbf{步骤3}  \\
+    由于CP知道\( r_1, r_2 \)、\([x]\)和\([y]\)，她可以计算\([r_2 \cdot x] \leftarrow [x]^{r_2} \)、\([r_1 \cdot y] \leftarrow [y]^{r_1} \)和\([r_1 \cdot r_2] \leftarrow \text{Enc}(pk, r_1 \cdot r_2) \)。以\([r_2 \cdot x] \)、\([r_1 \cdot y] \)、\([r_1 \cdot r_2] \)和\([(x + r_1) \cdot (y + r_2)] \)作为输入，CP计算\([x \cdot y] \leftarrow [(x + r_1) \cdot (y + r_2)] \cdot ([r_2 \cdot x] \cdot [r_1 \cdot y] \cdot [r_1 \cdot r_2])^{N-1} \)。
+\end{enumerate}
+
+\begin{algorithm}
+\caption{SMUL([x], [y]) \(\rightarrow\) [\(x\cdot y\)]}
+\textbf{输入：} CP有[\(x\)]和[\(y\)]，其中\(x,y\in[-2^{\ell},2^{\ell}]\)。\\
+\textbf{输出：} CP获得[\(x\cdot y\)]。
+\begin{enumerate}
+    \item CP计算：
+    \begin{itemize}
+        \item \(X\leftarrow[x]\cdot[r_{1}]\)和\(Y\leftarrow[y]\cdot[r_{2}]\)，其中\(r_{1},r_{2}\)是\(\sigma\)位的随机数；
+        \item \(X_{1}\leftarrow\texttt{PDec}(sk_{1},X)\)和\(Y_{1}\leftarrow\texttt{PDec}(sk_{1},Y)\)；
+        \item 并将\(\langle(X,X_{1}),(Y,Y_{1})\rangle\)发送给CSP。
+    \end{itemize}
+    \item CSP计算：
+    \begin{itemize}
+        \item \(X_{2}\leftarrow\texttt{PDec}(sk_{2},X)\)和\(Y_{2}\leftarrow\texttt{PDec}(sk_{2},Y)\)；
+        \item \(x+r_{1}\leftarrow\texttt{TDec}(X_{1},X_{2})\)和\(y+r_{2}\leftarrow\texttt{TDec}(Y_{1},Y_{2})\)；
+        \item \(\|(x+r_{1})\cdot(y+r_{2})\|\leftarrow\texttt{Enc}(pk,(x+r_{1})\cdot(y+r_{2}))\)；
+        \item 并将\(\|(x+r_{1})\cdot(y+r_{2})\|\)发送给CP。
+    \end{itemize}
+    \item CP计算：
+    \begin{itemize}
+        \item \([r_{2}\cdot x]\leftarrow[x]^{r_{2}}\)，\([r_{1}\cdot y]\leftarrow[y]^{r_{1}}\)，和\([r_{1}\cdot r_{2}]\leftarrow\texttt{Enc}(pk,r_{1}\cdot r_{2})\)；
+        \item \([x\cdot y]\leftarrow[(x+r_{1})\cdot(y+r_{2})]\cdot([r_{2}\cdot x]\cdot[r_{1}\cdot y]\cdot[r_{1}\cdot r_{2}])^{N-1}\)。
+    \end{itemize}
+\end{enumerate}
+\end{algorithm}
+
+在[16]和[17]的整数计算工具包中，\( r_{1},r_{2}\overset{\$}{\leftarrow}\mathbb{Z}_{N} \)。因此，[16]和[17]中的\( r_{1},r_{2} \)的比特长度通常大于SOCI中的\( r_{1},r_{2} \)。根据计算复杂性理论[31]（即给定基数\( g \)和指数\( r \)，计算\( g^{r} \)需要\( 1.5|r| \)次乘法操作），方案[16]和[17]平均比SOCI花费更多的运行时间来执行安全计算操作。此外，对于任何足够大的\(\sigma\)（例如\(\sigma=128\)），给定\( x+r \)，它可以有效防止对手学习\( x \)（详细证明在定理1中给出）。
+
+\textbf{声明1：}给定[\(x\)]和[\(y\)]（\(x,y\in[-2^{\ell},2^{\ell}]\)），SMUL([\(x\)], [\(y\)])输出[\(x\cdot y\)]。
+
+容易验证\([(x+r_{1})\cdot(y+r_{2})]=[x\cdot y+r_{2}\cdot x+r_{1}\cdot y+r_{1}\cdot r_{2}]\)。因此，我们有：
+\[
+[(x+r_{1})\cdot(y+r_{2})]\cdot([r_{2}\cdot x]\cdot[r_{1}\cdot y]\cdot[r_{1}\cdot r_{2}])^{N-1} = [x\cdot y].
+\]
+
+\subsection{安全比较协议（SCMP）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{协议目标}  \\
+    给定\([x]\)和\([y]\)，其中\( x, y \in [-2^\ell, 2^\ell] \)，SCMP([\(x\)], [\(y\)])输出\([u]\)，即SCMP([\(x\)], [\(y\)]) \(\rightarrow\) [\(u\)]，其中如果\( x \geq y \)，则\( u = 0 \)，否则\( u = 1 \)。如算法2所示，SCMP包括三个步骤。
+    \item \textbf{步骤1}  \\
+    CP随机选择\( \pi \in \{0, 1\} \)并计算：
+    \[
+    D = 
+    \begin{cases} 
+    ([x]\cdot[y]^{N-1})^{r_1} \cdot[r_1 + r_2], & \text{如果 } \pi = 0 \\
+    ([y]\cdot[x]^{N-1})^{r_1} \cdot[r_2], & \text{如果 } \pi = 1 
+    \end{cases}
+    \]
+    其中随机数\( r_1 \leftarrow \{0, 1\}^\sigma \setminus \{0\} \)和\( r_2 \)，满足\( r_2 \leq \frac{N}{2} \)且\( r_1 + r_2 > \frac{N}{2} \)。\(\sigma\)是一个安全参数，例如\(\sigma = 128\)。接下来，CP调用PDec部分解密\( D \)得到\( D_1 \)，并将\((D, D_1)\)发送给CSP。
+    \item \textbf{步骤2}  \\
+    CSP调用PDec部分解密\( D \)得到\( D_2 \)，然后调用TDec与\( D_1 \)和\( D_2 \)一起得到\( d \)。如果\( \pi = 0 \)，则\( d = r_1 \cdot (x - y + 1) + r_2 \)；否则，\( d = r_1 \cdot (y - x) + r_2 \)。接下来，如果\( d > \frac{N}{2} \)，CSP设置\( u_0 = 0 \)，否则设置\( u_0 = 1 \)。最后，CSP使用从DO发送的公钥\( pk \)加密\( u_0 \)，并将\([u_0]\)返回给CP。
+    \item \textbf{步骤3}  \\
+    CP根据\( \pi \)的值刷新\([u_0]\)。如果\( \pi = 1 \)，CP计算\([u] \leftarrow [1] \cdot [u_0]^{N-1} \)；否则，\([u] \leftarrow [u_0]\)。
+\end{enumerate}
+
+\begin{algorithm}
+\caption{SCMP([x], [y]) \(\rightarrow\)[u]}
+\textbf{输入：} CP有\([x]\)和\([y]\)，其中\(x, y\in[-2^{\ell}, 2^{\ell}]\)。\\
+\textbf{输出：} CP获得\(\llbracket u\rrbracket\)，其中如果\(x\geq y\)，则\(u=0\)，否则（\(x<y\)），\(u=1\)。
+\begin{enumerate}
+    \item CP计算：
+    \begin{itemize}
+        \item 当\(\pi=0\)时，\(\llbracket r_{1}+r_{2}\rrbracket\leftarrow\operatorname{Enc}(pk,r_{1}+r_{2})\)和\(D\leftarrow(\llbracket x\rrbracket\cdot[y]^{N-1})^{r_{1}}\cdot[r_{1}+r_{2}]\)；当\(\pi=1\)时，\(\llbracket r_{2}\rrbracket\leftarrow\operatorname{Enc}(pk,r_{2})\)和\(D\leftarrow(\llbracket y\rrbracket\cdot[x]^{N-1})^{r_{1}}\cdot[r_{2}]\)，其中随机数\(r_{1}\leftarrow\{0,1\}^{\sigma}\setminus\{0\}\)和\(r_{2}\)满足\(r_{2}\leq\frac{N}{2}\)且\(r_{1}+r_{2}>\frac{N}{2}\)。\(\sigma\)是一个安全参数，例如\(\sigma=128\)。CP抛随机硬币生成\(\pi\)，即\(\pi\in\{0,1\}\)；
+        \item \(D_{1}\leftarrow\operatorname{PDec}(sk_{1},D)\)；
+        \item 并将\((D,D_{1})\)发送给CSP。
+    \end{itemize}
+    \item CSP计算：
+    \begin{itemize}
+        \item \(D_{2}\leftarrow\operatorname{PDec}(sk_{2},D)\)和\(d\leftarrow\operatorname{TDec}(D_{1},D_{2})\)；
+        \item 当\(d>\frac{N}{2}\)时，\(\llbracket u_{0}\rrbracket\leftarrow\operatorname{Enc}(pk,0)\)，否则（\(d\leq\frac{N}{2}\)），\(\llbracket u_{0}\rrbracket\leftarrow\operatorname{Enc}(pk,1)\)；
+        \item 并将\(\llbracket u_{0}\rrbracket\)发送给CP。
+    \end{itemize}
+    \item CP计算：
+    \begin{itemize}
+        \item 如果\(\pi=0\)，则\(\llbracket u\rrbracket\leftarrow\llbracket u_{0}\rrbracket\)，否则\(\llbracket u\rrbracket\leftarrow\llbracket 1\rrbracket\cdot\llbracket u_{0}\rrbracket^{N-1}\)。
+    \end{itemize}
+\end{enumerate}
+\end{algorithm}
+
+\subsection{安全符号位获取协议（SSBA）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{协议目标}  \\
+    给定密文\([x]\)，其中\( x\in[-2^{\ell},2^{\ell}] \)，SSBA\(([x])\)输出\(\langle[s_{x}],[x^{*}]\rangle\)，即SSBA\(([x])\rightarrow\langle[s_{x}^{*}],[x^{*}]\rangle\)，其中\( s_{x} \)和\( x^{*} \)分别是\( x \)的符号位和幅度。如果\( x \geq 0 \)，则\( s_{x} = 0 \)且\( x^{*} = x \)；否则，\( s_{x} = 1 \)且\( x^{*} = -x \)。SSBA依赖于之前的SCMP和SMUL。如算法3所示，SSBA包括四个步骤。
+    \item \textbf{步骤1}  \\
+    CP生成0的密文\([0]\)。
+    \item \textbf{步骤2}  \\
+    CP和CSP共同计算SCMP\(([x],[0])\)得到\([s_{x}]\)。根据算法2，如果\( x \geq 0 \)，则\( s_{x} = 0 \)；否则，\( s_{x} = 1 \)。
+    \item \textbf{步骤3}  \\
+    获得\([s_{x}]\)后，CP加密1得到\([1]\)，并进一步计算\([1-2s_{x}]\leftarrow[1]\cdot[s_{x}]^{N-2}\)。
+    \item \textbf{步骤4}  \\
+    CP和CSP共同计算SMUL\(([1-2s_{x}],[x])\)得到\([x^{*}]\)，其中\( x^{*} = (1-2s_{x}) \cdot x \)。显然，如果\( x \geq 0 \)，则\( x^{*} = x \)；否则，\( x^{*} = -x \)。
+\end{enumerate}
+
+\begin{algorithm}
+\caption{SSBA\(([x])\rightarrow\langle[s_{x}],[x^{*}]\rangle\)}
+\textbf{输入：} CP有\([x]\)，其中\(x\in[-2^{\ell},2^{\ell}]\)。\\
+\textbf{输出：} CP获得\(\langle[s_{x}],[x^{*}]\rangle\)，其中\(s_{x}\)和\(x^{*}\)分别是\(x\)的符号位和幅度，且如果\(x\geq 0\)，则\(s_{x}=0\)且\(x^{*}=x\)，否则\(s_{x}=1\)且\(x^{*}=-x\)。
+\begin{enumerate}
+    \item CP计算：
+    \begin{itemize}
+        \item [0]\(\leftarrow\) Enc\((pk,0)\)。
+    \end{itemize}
+    \item CP和CSP共同计算：
+    \begin{itemize}
+        \item [\(s_{x}\)]\(\leftarrow\) SCMP\(([x],[0])\)。
+    \end{itemize}
+    \item CP计算：
+    \begin{itemize}
+        \item [1]\(\leftarrow\) Enc\((pk,1)\)和\([1-2s_{x}]\leftarrow[1]\cdot[s_{x}]^{N-2}\)。
+    \end{itemize}
+    \item CP和CSP共同计算：
+    \begin{itemize}
+        \item [\(x^{*}\)]\(\leftarrow\) SMUL\(([1-2s_{x}],[x])\)。
+    \end{itemize}
+\end{enumerate}
+\end{algorithm}
+
+\subsection{安全除法协议（SDIV）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{协议目标}  \\
+    给定两个密文\([x]\)和\([y]\)，其中\( x \in [0, 2^\ell] \)且\( y \in (0, 2^\ell] \)，SDIV(\([x]\), \([y]\))输出\([q]\)和\([e]\)，其中\( q \)和\( e \)分别是\( x \)除以\( y \)的商和余数，即SDIV(\([x]\), \([y]\)) \(\rightarrow\) (\([q]\), \([e]\))。SDIV的关键思想是找到满足\( q \cdot y \leq x \)且\( x - q \cdot y > y \)的\( q \)。然后，有\( e = x - q \cdot y \)。如算法4所示，SDIV包括七个步骤。
+    \item \textbf{步骤1}  \\
+    CP初始化\([q] = [0]\)。
+    \item \textbf{步骤2}  \\
+    CP计算\([c] \leftarrow [y]^{2^i} \)得到\([2^i \cdot y]\)（\( i \in \{ \ell, \ell - 1, \cdots, 0 \} \)）。
+    \item \textbf{步骤3}  \\
+    CP和CSP共同计算SCMP(\([x]\), \([c]\))得到\([u]\)。注意，如果\( x \geq 2^i \cdot y \)，则\( u = 0 \)；否则，\( u = 1 \)。
+    \item \textbf{步骤4}  \\
+    获得\([u]\)后，CP计算\([u'] \leftarrow [1] \cdot [u]^{N-1} \)和\([q] \leftarrow [q] \cdot [u']^{2^i} \)。我们看到\( u' = 1 - u \)，并且如果\( u' = 1 \)，则\( q = q + 2^i \)；否则，\( q \)不变。
+    \item \textbf{步骤5}  \\
+    CP和CSP共同计算SMUL(\([u']\), \([c]\))得到\([m]\)（\( m = u' \cdot 2^i \cdot y \)）。我们看到如果\( u' = 1 \)（即\( x \geq 2^i \cdot y \)），则\( m = 2^i \cdot y \)；否则，\( m = 0 \)。
+    \item \textbf{步骤6}  \\
+    CP计算\([x] \leftarrow [x] \cdot [m]^{N-1} \)得到\( x \leftarrow x - m \)。如果\( m = 2^i \cdot y \)（即\( x \geq 2^i \cdot y \)），则\( x = x - 2^i \cdot y \)；否则，\( x \)不变。重复步骤(2)-(6)直到\( i = 0 \)。
+    \item \textbf{步骤7}  \\
+    CP获得\([e] \leftarrow [x]\)。
+\end{enumerate}
+
+\begin{algorithm}
+\caption{SDIV([x], [y]) \(\rightarrow\) ([q], [e])}
+\textbf{输入：} CP有\([x]\)和\([y]\)，其中\(x \in [0, 2^\ell]\)且\(y \in (0, 2^\ell]\)。\\
+\textbf{输出：} CP获得\(\langle [q], [e]\rangle\)，其中\(x = q \cdot y + e\)。
+\begin{enumerate}
+    \item CP计算：
+    \begin{itemize}
+        \item \([q] \leftarrow \text{Enc}(pk, 0)\)和\([1] \leftarrow \text{Enc}(pk, 1)\)。
+    \end{itemize}
+    \item \textbf{for} \(i = \ell\) \textbf{to} 0 \textbf{do}
+    \begin{enumerate}
+        \item CP计算：
+        \begin{itemize}
+            \item \([c] \leftarrow [y]^{2^i}\)。
+        \end{itemize}
+        \item CP和CSP共同计算：
+        \begin{itemize}
+            \item \([u] \leftarrow \text{SCMP}([x], [c])\)。
+        \end{itemize}
+        \item CP计算：
+        \begin{itemize}
+            \item \([u'] \leftarrow [1] \cdot [u]^{N-1}\)和\([q] \leftarrow [q] \cdot [u']^{2^i}\)。
+        \end{itemize}
+        \item CP和CSP共同计算：
+        \begin{itemize}
+            \item \([m] \leftarrow \text{SMUL}([u'], [c])\)。
+        \end{itemize}
+        \item CP计算：
+        \begin{itemize}
+            \item \([x] \leftarrow [x] \cdot [m]^{N-1}\)。
+        \end{itemize}
+    \end{enumerate}
+    \item \textbf{end for}
+    \item CP计算：
+    \begin{itemize}
+        \item \([e] \leftarrow [x]\)。
+    \end{itemize}
+\end{enumerate}
+\end{algorithm}
+
+\clearpage
+
+\section{SOCI+: An Enhanced Toolkit for Secure  Outsourced Computation on Integers}
+\textbf{一句话总结：}  
+Ma 等人提出了具有快速加密和解密功能的 Paillier 加密系统（称为 FastPai），该系统通过特殊参数生成和优化运算实现高效同态计算；基于此进一步构建了 (2,2)-阈值 Paillier 密码系统（FastPaiTD），通过中国剩余定理实现私钥安全分割与协同解密。
+
+\subsection{FastPai 加密系统组件}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{模数 \(N\) 生成（\(NGen\)）}  \\
+    FastPai 调用 \(NGen\) 生成 Paillier 密码系统的模数 \(N\)。具体而言，\(NGen\) 以安全参数 \(\kappa\)（例如 \(\kappa=112\)）为输入，执行以下步骤，其中 \(n(\kappa)\) 表示公参 \(N\) 的位长，\(l(\kappa)=4\cdot\kappa\) 表示 FastPai 私钥的位长：
+    \begin{enumerate}[leftmargin=*, nosep]
+        \item 随机选择 \(\frac{l(\kappa)}{2}\) 位的奇素数 \(p, q\)。
+        \item 随机选择 \((\frac{n(\kappa)-l(\kappa)}{2}-1)\) 位的奇整数 \(p', q'\)。
+        \item 计算 \(P = 2pp' + 1\) 和 \(Q = 2qq' + 1\)。
+        \item 若 \(p, q, p', q'\) 非互素，或 \(P\) 和 \(Q\) 中有一个非素数，则返回步骤 (i)。
+        \item 计算 \(N = PQ\)，并输出 \((N, P, Q, p, q)\)。
+    \end{enumerate}
+
+    \item \textbf{密钥生成（\(KeyGen\)）}  \\
+    \(KeyGen\) 生成私钥 \(sk\) 和公钥 \(pk\)。其首先调用 \(NGen\) 获取 \((N, P, Q, p, q)\)，然后计算 \(\alpha = pq\) 和 \(\beta = (P-1)(Q-1)/(4pq)\)。接着，\(KeyGen\) 计算 \(h = -y^{2\beta} \mod N\)（其中 \(y\) 从 \(\mathbb{Z}_N^*\) 中均匀随机选择），最终输出 \(pk = (N, h)\) 和 \(sk = \alpha\)。
+
+    \item \textbf{加密（\(Enc\)）}  \\
+    \(Enc\) 输入消息 \(m \in \mathbb{Z}_N\) 和 \(pk\)，输出密文 \(c \in \mathbb{Z}_{N^2}^*\)。形式化定义为：
+    \[
+    c \leftarrow Enc(pk, m) = (1 + N)^m \cdot (h^r \mod N)^N \mod N^2.
+    \]
+    其中随机数 \(r\) 满足 \(r \leftarrow \{0,1\}^{l(\kappa)}\)。本文后续使用 \(\llbracket x \rrbracket\) 表示 \(x\) 的密文。
+
+    \item \textbf{解密（\(Dec\)）}  \\
+    \(Dec\) 输入密文 \(c \in \mathbb{Z}_{N^2}^*\) 和 \(sk\)，输出明文消息 \(m \in \mathbb{Z}_N\)。形式化定义为：
+    \[
+    m \leftarrow Dec(sk, c) = \left( \frac{(c^{2\alpha} \mod N^2) - 1}{N} \mod N \right) \cdot (2\alpha)^{-1} \mod N.
+    \]
+\end{enumerate}
+
+\subsection{(2,2)-阈值 Paillier 密码系统（FastPaiTD）}
+FastPaiTD 是一种基于 FastPai [12] 的新型 (2,2)-阈值 Paillier 密码系统。其将 FastPai 的私钥 \(sk = \alpha\) 拆分为两个部分私钥 \(sk_1\) 和 \(sk_2\)，满足：
+\[
+sk_1 + sk_2 \equiv 0 \pmod{2\alpha} \quad \text{且} \quad sk_1 + sk_2 \equiv 1 \pmod{N}.
+\]
+根据中国剩余定理 [32]，可构造：
+\[
+\delta = sk_1 + sk_2 = (2\alpha) \cdot ((2\alpha)^{-1} \mod N) \mod (2\alpha \cdot N).
+\]
+随机生成 \(\sigma\) 位（例如 \(\sigma=128\)）的 \(sk_1\)，并设置：
+\[
+sk_2 = ((2\alpha)^{-1} \mod N) \cdot (2\alpha) - sk_1 + \eta \cdot 2\alpha \cdot N \quad (\eta \in \mathbb{Z}).
+\]
+除 FastPai 原有操作外，FastPaiTD 新增以下功能：
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{部分解密（\(PDec\)）}  \\
+    输入密文 \(c \in \mathbb{Z}_{N^2}^*\) 和部分私钥 \(sk_i\)（\(i \in \{1,2\}\)），输出中间密文 \(M_i \in \mathbb{Z}_{N^2}^*\)：
+    \[
+    M_i \leftarrow PDec(sk_i, c) = c^{sk_i} \mod N^2. \tag{3}
+    \]
+
+    \item \textbf{阈值解密（\(TDec\)）}  \\
+    输入部分解密结果 \(M_1\) 和 \(M_2\)，输出明文 \(m \in \mathbb{Z}_N\)：
+    \[
+    m \leftarrow TDec(M_1, M_2) = \frac{(M_1 \cdot M_2 \mod N^2) - 1}{N} \mod N. \tag{4}
+    \]
+\end{enumerate}
+
+\subsection*{安全计算协议详细设计}
+\textbf{一句话总结：}  
+SOCI$^{+}$ 工具包提出四种核心安全计算协议（SMUL、SCMP、SSBA、SDIV），均采用离线和在线两阶段架构，基于阈值Paillier密码系统实现隐私保护的乘法、比较、符号位提取和除法运算，通过随机掩码和协同计算平衡效率与安全性。
+
+\subsection{安全乘法协议（SMUL）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{输入与输出}  \\
+    给定 $\llbracket x \rrbracket$ 和 $\llbracket y \rrbracket$（其中 $x, y \in [-2^l, 2^l]$），$S_0$ 与 $S_1$ 协同计算 $\llbracket x \cdot y \rrbracket \leftarrow \text{SMUL}(\llbracket x \rrbracket, \llbracket y \rrbracket)$。输入由 $S_0$ 持有，且仅 $S_0$ 可访问输出。
+
+    \item \textbf{离线阶段}  \\
+    $S_0$ 构建元组 $tuple_{S_0}$，包含 $r_1, r_2, \llbracket r_1 \rrbracket, \llbracket r_2 \rrbracket$ 和 $\llbracket -r_1 \cdot r_2 \rrbracket$（参见第V-B1节）。
+
+    \item \textbf{在线阶段}  
+    包含三个步骤：
+    \begin{enumerate}[leftmargin=*, nosep]
+        \item $S_0$ 从 $tuple_{S_0}$ 获取 $r_1, r_2, \llbracket r_1 \rrbracket, \llbracket r_2 \rrbracket$ 和 $\llbracket -r_1 \cdot r_2 \rrbracket$。随后计算 $X \leftarrow \llbracket x \rrbracket \cdot \llbracket r_1 \rrbracket$ 和 $Y \leftarrow \llbracket y \rrbracket \cdot \llbracket r_2 \rrbracket$ 以分别掩码 $x$ 和 $y$。接着计算 $C \leftarrow X^L \cdot Y$，其中 $L$ 是两服务器预先协商的常数，且 $L \geq 2^{\sigma+2}$。最后，$S_0$ 将 $C$ 和 $C_1$ 发送至 $S_1$，其中 $C_1 \leftarrow \text{PDec}(sk_1, C)$。
+        \item $S_1$ 收到 $C$ 和 $C_1$ 后，调用 $\text{PDec}$ 对 $C$ 进行部分解密，得到 $C_2$。此外，$S_1$ 获取 $L$，并通过调用 $\text{TDec}$ 与 $C_1$ 和 $C_2$ 计算得到 $L \cdot (x + r_1) + y + r_2$。随后，$S_1$ 计算 $\lfloor (L \cdot (x + r_1) + y + r_2)/L \rfloor$ 和 $(L \cdot (x + r_1) + y + r_2) \mod L$，分别导出 $(x + r_1)$ 和 $(y + r_2)$ 的值。最后，$S_1$ 加密 $(x + r_1) \cdot (y + r_2)$ 并将 $\llbracket (x + r_1) \cdot (y + r_2) \rrbracket$ 发送至 $S_0$。
+        \item $S_0$ 收到 $\llbracket (x + r_1) \cdot (y + r_2) \rrbracket$ 后，计算 $\llbracket x \rrbracket^{-r_2}$ 和 $\llbracket y \rrbracket^{-r_1}$，分别得到 $\llbracket -r_2 \cdot x \rrbracket$ 和 $\llbracket -r_1 \cdot y \rrbracket$。随后计算 $\llbracket (x + r_1) \cdot (y + r_2) \rrbracket \cdot \llbracket -r_2 x \rrbracket \cdot \llbracket -r_1 y \rrbracket \cdot \llbracket -r_1 \cdot r_2 \rrbracket$，输出 $\llbracket x \cdot y \rrbracket$。
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{安全比较协议（SCMP）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{输入与输出}  \\
+    给定 $\llbracket x \rrbracket$ 和 $\llbracket y \rrbracket$（其中 $x, y \in [-2^l, 2^l]$），$S_0$ 与 $S_1$ 协同计算 $\llbracket \mu \rrbracket \leftarrow \text{SCMP}(\llbracket x \rrbracket, \llbracket y \rrbracket)$。若 $\mu = 0$，则 $x \geq y$；否则 $x < y$。
+
+    \item \textbf{离线阶段}  \\
+    $S_0$ 构建元组 $tuple_{S_0}$，包含 $r_3, r_4, \llbracket r_3 + r_4 \rrbracket, \llbracket r_4 \rrbracket$ 和 $\llbracket 1 \rrbracket$。同时，$S_1$ 构建元组 $tuple_{S_1}$，包含 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。
+
+    \item \textbf{在线阶段}  
+    包含三个步骤：
+    \begin{enumerate}[leftmargin=*, nosep]
+        \item $S_0$ 从 $tuple_{S_0}$ 获取 $r_3, r_4, \llbracket r_3 + r_4 \rrbracket, \llbracket r_4 \rrbracket$ 和 $\llbracket 1 \rrbracket$。接着，$S_0$ 从 $\{0, 1\}$ 中随机选择数 $\pi$。若 $\pi = 0$，计算 $D \leftarrow (\llbracket x \rrbracket \cdot \llbracket y \rrbracket^{N-1})^{r_3} \cdot \llbracket r_3 + r_4 \rrbracket$；若 $\pi = 1$，计算 $D \leftarrow (\llbracket y \rrbracket \cdot \llbracket x \rrbracket^{N-1})^{r_3} \cdot \llbracket r_4 \rrbracket$。随后，$S_0$ 将 $D$ 和 $D_1$ 发送至 $S_1$，其中 $D_1 \leftarrow \text{PDec}(sk_1, D)$。
+        \item $S_1$ 收到 $D$ 和 $D_1$ 后，使用 $\text{PDec}$ 对 $D$ 进行部分解密，得到 $D_2$。随后，通过调用 $\text{TDec}$ 与 $D_1$ 和 $D_2$ 得到 $d$。接着，$S_1$ 从 $tuple_{S_1}$ 获取 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。若 $d > \frac{N}{2}$，设 $\llbracket \mu_0 \rrbracket \leftarrow \llbracket 0 \rrbracket$；否则 $\llbracket \mu_0 \rrbracket \leftarrow \llbracket 1 \rrbracket$。最后，$S_1$ 将 $\llbracket \mu_0 \rrbracket$ 发送至 $S_0$。
+        \item 若 $\pi = 0$，$S_0$ 设 $\llbracket \mu \rrbracket \leftarrow \llbracket \mu_0 \rrbracket$；否则，$\llbracket \mu \rrbracket \leftarrow \llbracket 1 \rrbracket \cdot \llbracket \mu_0 \rrbracket^{N-1}$。
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{安全符号位获取协议（SSBA）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{输入与输出}  \\
+    给定 $\llbracket x \rrbracket$（其中 $x \in [-2^l, 2^l]$），$S_0$ 与 $S_1$ 协同计算 $(\llbracket s_x \rrbracket, \llbracket x^* \rrbracket) \leftarrow \text{SSBA}(\llbracket x \rrbracket)$，其中 $s_x$ 是 $x$ 的符号位，$x^*$ 代表 $x$ 的幅值。若 $x \geq 0$，则 $s_x = 0$ 且 $x^* = x$；否则 $s_x = 1$ 且 $x^* = -x$。
+
+    \item \textbf{离线阶段}  \\
+    $S_0$ 构建元组 $tuple_{S_0}$，包含 $r_1, r_2, \llbracket r_1 \rrbracket, \llbracket r_2 \rrbracket, \llbracket -r_1 \cdot r_2 \rrbracket, r_3, r_4, \llbracket r_3 + r_4 \rrbracket, \llbracket r_4 \rrbracket, \llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。$S_1$ 构建元组 $tuple_{S_1}$，包含 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。
+
+    \item \textbf{在线阶段}  
+    包含四个步骤：
+    \begin{enumerate}[leftmargin=*, nosep]
+        \item $S_0$ 从 $tuple_{S_0}$ 获取 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。
+        \item $S_0$ 与 $S_1$ 协同执行 $\llbracket s_x \rrbracket \leftarrow \text{SCMP}(\llbracket x \rrbracket, \llbracket 0 \rrbracket)$。若 $x \geq 0$，则 $s_x = 0$；否则 $s_x = 1$。
+        \item $S_0$ 计算 $\llbracket 1 - 2s_x \rrbracket \leftarrow \llbracket 1 \rrbracket \cdot \llbracket s_x \rrbracket^{N-2}$。
+        \item 最后，$S_0$ 与 $S_1$ 协同执行 $\llbracket x^* \rrbracket \leftarrow \text{SMUL}(\llbracket 1 - 2s_x \rrbracket, \llbracket x \rrbracket)$。显然，$\llbracket x^* \rrbracket = (1 - 2s_x) \cdot x$。此外，若 $x \geq 0$，则 $x^* = x$；否则 $x^* = -x$。
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{安全除法协议（SDIV）}
+\begin{enumerate}[leftmargin=*, nosep]
+    \item \textbf{输入与输出}  \\
+    给定 $\llbracket x \rrbracket$ 和 $\llbracket y \rrbracket$（其中 $x \in [0, 2^l]$ 且 $y \in (0, 2^l]$），$S_0$ 与 $S_1$ 协同计算 $(\llbracket q \rrbracket, \llbracket e \rrbracket) \leftarrow \text{SDIV}(\llbracket x \rrbracket, \llbracket y \rrbracket)$，其中 $q$ 代表除法的商，$e$ 代表余数，满足 $x = q \cdot y + e$。
+
+    \item \textbf{离线阶段}  \\
+    $S_0$ 构建元组 $tuple_{S_0}$，包含 $\llbracket 0 \rrbracket, \llbracket 1 \rrbracket$ 和 $l+1$ 份 $\{ r_1, r_2, \llbracket r_1 \rrbracket, \llbracket r_2 \rrbracket, \llbracket -r_1 \cdot r_2 \rrbracket, r_3, r_4, \llbracket r_3 + r_4 \rrbracket, \llbracket r_4 \rrbracket \}$。$S_1$ 构建元组 $tuple_{S_1}$，包含 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。
+
+    \item \textbf{在线阶段}  
+    包含七个步骤：
+    \begin{enumerate}[leftmargin=*, nosep]
+        \item $S_0$ 从 $tuple_{S_0}$ 获取 $\llbracket 0 \rrbracket$ 和 $\llbracket 1 \rrbracket$。随后，设 $\llbracket q \rrbracket \leftarrow \llbracket 0 \rrbracket$ 且 $i = l$。
+        \item $S_0$ 计算 $\llbracket c_i \rrbracket \leftarrow \llbracket y \rrbracket^{2^i}$。
+        \item $S_0$ 与 $S_1$ 协同执行 $\llbracket \mu \rrbracket \leftarrow \text{SCMP}(\llbracket x \rrbracket, \llbracket c_i \rrbracket)$。若 $x \geq 2^i \cdot y$，则 $\mu = 0$；否则 $\mu = 1$。
+        \item $S_0$ 计算 $\llbracket \mu' \rrbracket \leftarrow \llbracket 1 \rrbracket \cdot \llbracket \mu \rrbracket^{N-1}$ 和 $\llbracket q \rrbracket \leftarrow \llbracket q \rrbracket \cdot \llbracket \mu' \rrbracket^{2^i}$。注意 $\mu' = 1 - \mu$。此时，若 $\mu' = 1$，则 $q = q + 2^i$。
+        \item $S_0$ 与 $S_1$ 协同执行 $\llbracket m \rrbracket \leftarrow \text{SMUL}(\llbracket \mu' \rrbracket, \llbracket c_i \rrbracket)$，其中 $m = \mu' \cdot 2^i \cdot y$。若 $\mu' = 1$（即 $x \geq 2^i \cdot y$），则 $m = 2^i \cdot y$；否则 $m = 0$。
+        \item $S_0$ 计算 $\llbracket x \rrbracket \leftarrow \llbracket x \rrbracket \cdot \llbracket m \rrbracket^{N-1}$。若 $m = 2^i \cdot y$（即 $x \geq 2^i \cdot y$），则 $x = x - 2^i \cdot y$。接着，$S_0$ 设 $i = i - 1$。重复步骤 (2)-(6) 直至 $i < 0$。
+        \item $S_0$ 输出余数 $\llbracket e \rrbracket \leftarrow \llbracket x \rrbracket$。
+    \end{enumerate}
+\end{enumerate}
+
+

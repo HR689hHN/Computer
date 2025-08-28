@@ -1,10 +1,10 @@
-This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.8.18)  23 AUG 2025 08:57
+This is XeTeX, Version 3.141592653-2.6-0.999997 (TeX Live 2025) (preloaded format=xelatex 2025.8.18)  28 AUG 2025 16:46
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
  %&-line parsing enabled.
-**Com_25.8
-(./Com_25.8.tex
+**main
+(./main.tex
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2025-01-18>
 (/usr/local/texlive/2025/texmf-dist/tex/latex/ctex/ctexbook.cls (/usr/local/texlive/2025/texmf-dist/tex/latex/ctex/config/ctexbackend.cfg
@@ -1051,8 +1051,8 @@ File: pgflibraryarrows.code.tex 2023-01-15 v3.1.10 (3.1.10)
 \arrowsize=\dimen370
 )) (/usr/local/texlive/2025/texmf-dist/tex/generic/pgf/frontendlayer/tikz/libraries/tikzlibrarypositioning.code.tex
 File: tikzlibrarypositioning.code.tex 2023-01-15 v3.1.10 (3.1.10)
-)) (./Com_25.8.aux)
-\openout1 = `Com_25.8.aux'.
+)) (./main.aux (./Reading.aux))
+\openout1 = `main.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
 LaTeX Font Info:    ... okay on input line 13.
@@ -1167,9 +1167,9 @@ LaTeX Font Info:    Overwriting math alphabet `\mathtt' in version `bold'
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 Package hyperref Info: Link coloring ON on input line 13.
-(./Com_25.8.out) (./Com_25.8.out)
+(./main.out) (./main.out)
 \@outlinefile=\write5
-\openout5 = `Com_25.8.out'.
+\openout5 = `main.out'.
 
 \c@lstlisting=\count406
 
@@ -1262,70 +1262,70 @@ Package fontspec Info:
 
 
 LaTeX Font Warning: Font shape `TU/STHeiti(0)/b/n' undefined
-(Font)              using `TU/STHeiti(0)/m/n' instead on input line 22.
+(Font)              using `TU/STHeiti(0)/m/n' instead on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\<let>-command' on input line 22.
+(hyperref)                removing `\<let>-command' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\\' on input line 22.
+(hyperref)                removing `\\' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\@centercr' on input line 22.
+(hyperref)                removing `\@centercr' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\rightskip' on input line 22.
+(hyperref)                removing `\rightskip' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\@flushglue' on input line 22.
+(hyperref)                removing `\@flushglue' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\leftskip' on input line 22.
+(hyperref)                removing `\leftskip' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\@flushglue' on input line 22.
+(hyperref)                removing `\@flushglue' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\finalhyphendemerits' on input line 22.
+(hyperref)                removing `\finalhyphendemerits' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\z@' on input line 22.
+(hyperref)                removing `\z@' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\parindent' on input line 22.
+(hyperref)                removing `\parindent' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\z@' on input line 22.
+(hyperref)                removing `\z@' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\parfillskip' on input line 22.
+(hyperref)                removing `\parfillskip' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\z@skip' on input line 22.
+(hyperref)                removing `\z@skip' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `\heiti' on input line 22.
+(hyperref)                removing `\heiti' on input line 24.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
 (hyperref)                \hskip 12.0pt
-(hyperref)                replaced by space on input line 22.
+(hyperref)                replaced by space on input line 24.
 
-(./Com_25.8.toc
+(./main.toc
 LaTeX Font Info:    Trying to load font information for U+msa on input line 1.
  (/usr/local/texlive/2025/texmf-dist/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
@@ -1335,7 +1335,7 @@ LaTeX Font Info:    Trying to load font information for U+msb on input line 1.
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ))
 \tf@toc=\write6
-\openout6 = `Com_25.8.toc'.
+\openout6 = `main.toc'.
 
 
 
@@ -1343,9 +1343,12 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 
 [2
 
-] 
+]
+\openout2 = `Reading.aux'.
+
+ (./Reading.tex) 
 enddocument/afterlastpage (AED): lastpage setting LastPage.
-(./Com_25.8.aux)
+(./main.aux (./Reading.aux))
  ***********
 LaTeX2e <2024-11-01> patch level 2
 L3 programming layer <2022/08/05>
@@ -1354,16 +1357,16 @@ L3 programming layer <2022/08/05>
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
-Package rerunfilecheck Info: File `Com_25.8.out' has not changed.
+Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: B39B3A2CAFF85D2C8FABCE0FD41CB92C;73.
  ) 
 Here is how much of TeX's memory you used:
- 45580 strings out of 473832
- 1101888 string characters out of 5729481
- 1582343 words of memory out of 5000000
- 67888 multiletter control sequences out of 15000+600000
+ 45603 strings out of 473832
+ 1102331 string characters out of 5729481
+ 1582506 words of memory out of 5000000
+ 67906 multiletter control sequences out of 15000+600000
  565836 words of font info for 101 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 103i,5n,114p,1200b,479s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 103i,5n,114p,1196b,479s stack positions out of 10000i,1000n,20000p,200000b,200000s
 
-Output written on Com_25.8.pdf (4 pages).
+Output written on main.pdf (4 pages).
